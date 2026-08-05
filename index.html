@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter For You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FDF4EC;
+    --coral:#E2795A;
+    --coral-deep:#C85C3E;
+    --red:#D64550;
+    --text:#3A2E2A;
+    --white:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Quicksand',sans-serif;
+    background:var(--cream);
+    color:var(--text);
+    overflow:hidden;
+  }
+  .scroller{
+    height:100vh;
+    overflow-y:scroll;
+    scroll-snap-type:y mandatory;
+    scroll-behavior:smooth;
+    position:relative;
+    z-index:1;
+  }
+  .page{
+    height:100vh;
+    width:100%;
+    scroll-snap-align:start;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:2rem;
+  }
+
+  /* scattered hearts background across whole page */
+  .hearts-field{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+  }
+  .hf-heart{
+    position:absolute;
+    color:var(--red);
+    animation:hfDrift linear infinite;
+  }
+  @keyframes hfDrift{
+    0%{transform:translateY(0) translateX(0) rotate(var(--r,0deg));}
+    50%{transform:translateY(-18px) translateX(6px) rotate(var(--r,0deg));}
+    100%{transform:translateY(0) translateX(0) rotate(var(--r,0deg));}
+  }
+
+  .dots{
+    position:fixed;
+    right:1.2rem;
+    top:50%;
+    transform:translateY(-50%);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    z-index:5;
+  }
+  .dot{
+    width:8px;height:8px;
+    border-radius:50%;
+    background:rgba(58,46,42,0.25);
+    cursor:pointer;
+  }
+  .dot.active{background:var(--coral-deep);}
+
+  /* ENVELOPE */
+  .envelope-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1rem;
+    transition:opacity 0.4s ease, transform 0.4s ease;
+  }
+  .envelope-wrap.hidden{
+    opacity:0;
+    transform:scale(0.85);
+    pointer-events:none;
+    position:absolute;
+  }
+  .envelope{
+    cursor:pointer;
+  }
+  .envelope svg{display:block;}
+  .caption{
+    font-family:'Caveat',cursive;
+    font-size:1.7rem;
+    color:var(--text);
+  }
+
+  .letter-window{
+    background:var(--white);
+    border-radius:18px;
+    padding:2.4rem 2rem;
+    max-width:460px;
+    width:100%;
+    box-shadow:0 20px 50px -22px rgba(200,92,62,0.4);
+    position:relative;
+    z-index:2;
+    transform:scale(0.7);
+    opacity:0;
+    pointer-events:none;
+    transition:transform 0.55s cubic-bezier(.2,1.4,.4,1), opacity 0.4s ease;
+  }
+  .letter-window.open{
+    transform:scale(1);
+    opacity:1;
+    pointer-events:auto;
+  }
+  .letter-content h2{
+    font-family:'Caveat',cursive;
+    font-weight:700;
+    color:var(--coral-deep);
+    font-size:2.1rem;
+    margin:0 0 0.8rem;
+  }
+  .letter-content p{
+    font-size:1.05rem;
+    line-height:1.8;
+    color:var(--text);
+    margin:0;
+  }
+
+  /* CANDLE */
+  #page2 h2{
+    font-family:'Caveat',cursive;
+    font-weight:700;
+    color:var(--coral-deep);
+    font-size:2rem;
+    margin-bottom:0.3rem;
+  }
+  #page2 .hint{
+    font-family:'Quicksand',sans-serif;
+    color:var(--text);
+    opacity:0.7;
+    font-size:0.92rem;
+    margin-bottom:2.8rem;
+  }
+  .cake-wrap{
+    position:relative;
+    width:220px;
+    height:220px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .plate{
+    width:220px;
+    height:16px;
+    background:var(--coral);
+    border-radius:50%;
+    position:absolute;
+    bottom:0;
+    left:0;
+  }
+  .layer{
+    width:200px;
+    height:48px;
+    margin:0 auto;
+    border-radius:14px;
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    box-shadow:inset 0 -8px 0 rgba(0,0,0,0.06);
+  }
+  .layer1{background:#F6C9B4;bottom:10px;}
+  .layer2{width:170px;background:#EFA483;bottom:52px;}
+  .layer3{width:140px;background:var(--coral-deep);bottom:94px;}
+  .drip{
+    position:absolute;
+    top:-9px;left:0;right:0;
+    height:18px;
+    background:inherit;
+    border-radius:0 0 50% 50%/0 0 100% 100%;
+  }
+  .candle{
+    position:absolute;
+    bottom:150px;
+    left:50%;
+    margin-left:-4px;
+    width:8px;
+    height:38px;
+    border-radius:3px;
+    background:repeating-linear-gradient(180deg,#F4CF6E 0 6px,#F0B84F 6px 12px);
+  }
+  .flame{
+    position:absolute;
+    top:-18px;
+    left:50%;
+    transform:translateX(-50%);
+    width:12px;
+    height:16px;
+    background:radial-gradient(circle at 50% 30%,#FFEDA6,#F0803D 70%);
+    border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    box-shadow:0 0 12px 4px rgba(240,128,61,0.35);
+    transition:opacity 0.4s ease, transform 0.4s ease;
+  }
+  .flame.out{opacity:0;transform:translateX(-50%) scaleY(0.2);}
+  #page2 .after-blow{
+    margin-top:1.6rem;
+    font-family:'Caveat',cursive;
+    font-size:1.5rem;
+    color:var(--coral-deep);
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity 0.5s ease, transform 0.5s ease;
+  }
+  #page2 .after-blow.show{opacity:1;transform:translateY(0);}
+
+  canvas.confetti{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    pointer-events:none;
+    z-index:20;
+  }
+</style>
+</head>
+<body>
+
+<div class="hearts-field" id="heartsField"></div>
+
+<div class="dots" id="dots">
+  <div class="dot active" data-i="0"></div>
+  <div class="dot" data-i="1"></div>
+</div>
+
+<canvas class="confetti" id="confettiCanvas"></canvas>
+
+<div class="scroller" id="scroller">
+
+  <section class="page" id="page1">
+    <div class="envelope-wrap" id="envelopeWrap">
+      <div class="envelope" id="envelopeBtn">
+        <svg width="150" height="106" viewBox="0 0 150 106">
+          <rect x="3" y="3" width="144" height="100" rx="6" fill="none" stroke="var(--coral)" stroke-width="2" stroke-dasharray="5 5"/>
+          <line x1="6" y1="6" x2="75" y2="58" stroke="var(--coral)" stroke-width="2" stroke-dasharray="4 4"/>
+          <line x1="144" y1="6" x2="75" y2="58" stroke="var(--coral)" stroke-width="2" stroke-dasharray="4 4"/>
+          <text x="75" y="66" text-anchor="middle" font-size="22" fill="var(--red)">♥</text>
+        </svg>
+      </div>
+      <div class="caption">♡ Letter For You ♡</div>
+    </div>
+
+    <div class="letter-window" id="letterWindow">
+      <div class="letter-content">
+        <h2>huurhun zaluud happi happi birthday 💗</h2>
+        <p>
+          
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="page2">
+    <h2>blow your own candle</h2>
+    <div class="hint">tap the cake</div>
+    <div class="cake-wrap" id="cake">
+      <div class="candle">
+        <div class="flame" id="flame"></div>
+      </div>
+      <div class="layer layer1"><div class="drip"></div></div>
+      <div class="layer layer2"><div class="drip"></div></div>
+      <div class="layer layer3"><div class="drip"></div></div>
+      <div class="plate"></div>
+    </div>
+    <div class="after-blow" id="afterBlow">make your wish come true ✨</div>
+  </section>
+
+</div>
+
+<script>
+  // scattered heart background across the whole page
+  const heartsField = document.getElementById('heartsField');
+  const symbols = ['♥','♥','♥','·','·'];
+  for(let i=0;i<70;i++){
+    const s = document.createElement('span');
+    s.className = 'hf-heart';
+    s.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+    s.style.left = Math.random()*100 + 'vw';
+    s.style.top = Math.random()*100 + 'vh';
+    s.style.fontSize = (8 + Math.random()*10) + 'px';
+    s.style.opacity = 0.35 + Math.random()*0.35;
+    const rot = (Math.random()*40-20);
+    s.style.setProperty('--r', rot + 'deg');
+    s.style.animationDuration = (3 + Math.random()*4) + 's';
+    s.style.animationDelay = (Math.random()*4) + 's';
+    heartsField.appendChild(s);
+  }
+
+  // page nav dots
+  const scroller = document.getElementById('scroller');
+  const dots = document.querySelectorAll('.dot');
+  const pages = document.querySelectorAll('.page');
+  dots.forEach(d=>{
+    d.addEventListener('click',()=>{
+      pages[+d.dataset.i].scrollIntoView({behavior:'smooth'});
+    });
+  });
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const idx = [...pages].indexOf(e.target);
+        dots.forEach(d=>d.classList.remove('active'));
+        dots[idx].classList.add('active');
+      }
+    });
+  },{root:scroller,threshold:0.6});
+  pages.forEach(p=>io.observe(p));
+
+  // envelope open
+  const envelopeWrap = document.getElementById('envelopeWrap');
+  const envelopeBtn = document.getElementById('envelopeBtn');
+  const letterWindow = document.getElementById('letterWindow');
+  envelopeBtn.addEventListener('click', ()=>{
+    envelopeWrap.classList.add('hidden');
+    letterWindow.classList.add('open');
+  });
+
+  // candle blow
+  const cake = document.getElementById('cake');
+  const flame = document.getElementById('flame');
+  const afterBlow = document.getElementById('afterBlow');
+  let blown = false;
+  cake.addEventListener('click',()=>{
+    if(blown) return;
+    blown = true;
+    flame.classList.add('out');
+    afterBlow.classList.add('show');
+    burstConfetti();
+  });
+
+  // confetti
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  resize();
+  window.addEventListener('resize',resize);
+  const colors = ['#E2795A','#D64550','#F4CF6E','#C85C3E'];
+  let particles = [];
+  let animating = false;
+  function burstConfetti(){
+    const originX = window.innerWidth/2;
+    const originY = window.innerHeight*0.55;
+    for(let i=0;i<90;i++){
+      particles.push({
+        x:originX,y:originY,
+        vx:(Math.random()-0.5)*10,
+        vy:(Math.random()-1.6)*11,
+        size:4+Math.random()*5,
+        color:colors[Math.floor(Math.random()*colors.length)],
+        rot:Math.random()*360,
+        vr:(Math.random()-0.5)*10,
+        life:0
+      });
+    }
+    if(!animating){animating=true;requestAnimationFrame(tick);}
+  }
+  function tick(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.vy+=0.28;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.life++;
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.color;
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+      ctx.restore();
+    });
+    particles = particles.filter(p=>p.y < window.innerHeight+40 && p.life<260);
+    if(particles.length>0){requestAnimationFrame(tick);}
+    else{animating=false;ctx.clearRect(0,0,canvas.width,canvas.height);}
+  }
+</script>
+
+</body>
+</html>
